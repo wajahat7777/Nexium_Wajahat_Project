@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import EmailProvider from "next-auth/providers/email";
+import { TypeORMLegacyAdapter } from "@next-auth/typeorm-legacy-adapter";
 
 export default NextAuth({
   providers: [
@@ -8,6 +9,11 @@ export default NextAuth({
       from: process.env.EMAIL_FROM,
     }),
   ],
+  adapter: TypeORMLegacyAdapter({
+    type: "sqlite",
+    database: "./db.sqlite",
+    synchronize: true,
+  }),
   pages: {
     signIn: '/auth/signin',
   },
