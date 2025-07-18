@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button, Input, Card, Textarea } from "@/components/ui";
 import { getAIResponse } from "../lib/ai";
+import { Sparkles } from "lucide-react";
 
 export default function DailyLog() {
   const [mood, setMood] = useState("");
@@ -17,9 +18,12 @@ export default function DailyLog() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-200 via-teal-100 to-white pt-32">
-      <Card className="p-8 max-w-lg w-full">
-        <h1 className="text-2xl font-bold mb-4 text-blue-700">Daily Log</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-teal-50 to-white flex flex-col items-center pt-28 px-2">
+      <Card className="p-8 max-w-lg w-full shadow-xl rounded-2xl border border-blue-100">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="text-blue-500" />
+          <h1 className="text-2xl font-bold text-blue-700">Daily Log</h1>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             value={mood}
@@ -33,7 +37,9 @@ export default function DailyLog() {
             placeholder="Add any notes or thoughts..."
             rows={4}
           />
-          <Button type="submit" className="w-full" disabled={loading}>{loading ? "Getting AI Suggestion..." : "Submit & Get AI Suggestion"}</Button>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Getting AI Suggestion..." : "Submit & Get AI Suggestion"}
+          </Button>
         </form>
         {aiSuggestion && (
           <div className="mt-6 p-4 bg-blue-50 rounded shadow text-blue-900">
