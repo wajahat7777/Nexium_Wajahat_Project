@@ -11,12 +11,11 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const { token, refresh, user_id, error: urlError } = router.query;
+      const { token, refresh, error: urlError } = router.query;
 
-      console.log('Frontend callback received:', { 
+      console.log('Callback received:', { 
         token: !!token, 
         refresh: !!refresh, 
-        user_id: !!user_id,
         error: urlError 
       });
 
@@ -38,33 +37,12 @@ export default function AuthCallback() {
         if (refresh) {
           localStorage.setItem("refreshToken", refresh);
         }
-        if (user_id) {
-          localStorage.setItem("userId", user_id);
-        }
-
-        // Test the token by making a request to the backend
-        const response = await fetch('http://localhost:3001/api/auth/me', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Token validation failed');
-        }
-
-        const userData = await response.json();
-        console.log('User authenticated:', userData);
-
-        // Store user data
-        localStorage.setItem("userData", JSON.stringify(userData));
 
         setStatus("success");
         
-        // Redirect to daily log after a short delay
+        // Redirect to profile after a short delay
         setTimeout(() => {
-          router.push("/daily-log");
+          router.push("/profile");
         }, 2000);
       } catch (error) {
         console.error("Callback error:", error);
@@ -97,7 +75,7 @@ export default function AuthCallback() {
           <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-red-700 mb-2">Authentication Failed</h1>
           <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={() => router.push("/auth/signin")} className="w-full">
+          <Button onClick={() => router.push("/signin")} className="w-full">
             Try Again
           </Button>
         </Card>
@@ -110,7 +88,7 @@ export default function AuthCallback() {
       <Card className="p-8 max-w-md w-full text-center">
         <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
         <h1 className="text-2xl font-bold text-green-700 mb-2">Successfully Signed In!</h1>
-        <p className="text-gray-600 mb-4">Redirecting you to your daily log...</p>
+        <p className="text-gray-600 mb-4">Redirecting you to your profile...</p>
         <div className="animate-pulse">
           <div className="h-2 bg-blue-200 rounded w-3/4 mx-auto"></div>
         </div>

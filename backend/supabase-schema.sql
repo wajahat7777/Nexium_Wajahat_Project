@@ -1,9 +1,10 @@
 -- Nexium Project Database Schema
 -- This schema creates all necessary tables, policies, and functions for the daily mood tracking app
 
--- Create profiles table
+-- Create profiles table with email tracking
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+  email TEXT NOT NULL,
   first_name TEXT,
   last_name TEXT,
   bio TEXT,
@@ -25,17 +26,11 @@ CREATE TABLE IF NOT EXISTS daily_logs (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_daily_logs_user_id ON daily_logs(user_id);
-CREATE INDEX IF NOT EXISTS idx_daily_logs_created_at ON daily_logs(created_at);
-CREATE INDEX IF NOT EXISTS idx_daily_logs_mood ON daily_logs(mood);
-CREATE INDEX IF NOT EXISTS idx_profiles_id ON profiles(id);
-
 -- Enable Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_logs ENABLE ROW LEVEL SECURITY;
 
--- Create RLS policies for profiles table
+-- Create RLS policies
 CREATE POLICY "Users can view own profile" ON profiles
   FOR SELECT USING (auth.uid() = id);
 
@@ -45,28 +40,18 @@ CREATE POLICY "Users can insert own profile" ON profiles
 CREATE POLICY "Users can update own profile" ON profiles
   FOR UPDATE USING (auth.uid() = id);
 
-CREATE POLICY "Users can delete own profile" ON profiles
-  FOR DELETE USING (auth.uid() = id);
-
--- Create RLS policies for daily_logs table
 CREATE POLICY "Users can view own logs" ON daily_logs
   FOR SELECT USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can insert own logs" ON daily_logs
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update own logs" ON daily_logs
-  FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own logs" ON daily_logs
-  FOR DELETE USING (auth.uid() = user_id);
-
 -- Create function to automatically create profile on user signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, first_name, last_name)
-  VALUES (NEW.id, NEW.raw_user_meta_data->>'first_name', NEW.raw_user_meta_data->>'last_name');
+  INSERT INTO public.profiles (id, email, first_name, last_name)
+  VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'first_name', NEW.raw_user_meta_data->>'last_name');
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
