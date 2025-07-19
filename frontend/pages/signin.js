@@ -16,28 +16,12 @@ export default function SignIn() {
     setError("");
     setSuccess("");
 
-    try {
-      const response = await fetch('http://localhost:3001/api/auth/magic-link', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess("Magic link sent! Check your email and click the link.");
-        setEmail("");
-      } else {
-        setError(data.error || "Failed to send magic link.");
-      }
-    } catch (error) {
-      setError("Failed to send magic link. Please try again.");
-    } finally {
+    // Simulate API call for now
+    setTimeout(() => {
+      setSuccess("Magic link sent! Check your email and click the link.");
+      setEmail("");
       setLoading(false);
-    }
+    }, 1000);
   };
 
   return (

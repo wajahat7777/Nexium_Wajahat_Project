@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button, Input, Card, Textarea } from "@/components/ui";
-import { getAIResponse } from "../lib/ai";
-import apiClient from "../lib/api";
 import { Sparkles, Brain, Zap } from "lucide-react";
 
 export default function DailyLog() {
@@ -10,47 +8,25 @@ export default function DailyLog() {
   const [aiSuggestion, setAiSuggestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [useExternalAI, setUseExternalAI] = useState(false);
-  const [externalAIAvailable, setExternalAIAvailable] = useState(false);
-
-  // Check if external AI service is available on component mount
-  useEffect(() => {
-    const checkExternalAI = async () => {
-      try {
-        const isAvailable = await apiClient.checkExternalAIService();
-        setExternalAIAvailable(isAvailable);
-      } catch (error) {
-        console.log('External AI service not available:', error);
-        setExternalAIAvailable(false);
-      }
-    };
-
-    checkExternalAI();
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
-    try {
-      let suggestion;
+    // Simulate AI response
+    setTimeout(() => {
+      const suggestions = [
+        "Based on your mood, try taking a short walk outside to clear your mind.",
+        "Consider practicing some deep breathing exercises to help you relax.",
+        "Your mood suggests you might benefit from connecting with a friend or family member.",
+        "Try doing something creative today - it can be very therapeutic.",
+        "Remember to be kind to yourself. Every day is a new opportunity."
+      ];
       
-      if (useExternalAI && externalAIAvailable) {
-        // Use external AI service (n8n + Hugging Face)
-        const response = await apiClient.getExternalAISuggestion(mood, notes);
-        suggestion = response.suggestion;
-      } else {
-        // Use local AI service
-        const ai = await getAIResponse(notes || mood);
-        suggestion = ai.suggestion || JSON.stringify(ai);
-      }
-      
-      setAiSuggestion(suggestion);
-    } catch (error) {
-      console.error('AI suggestion error:', error);
-      setAiSuggestion('Sorry, I encountered an error. Please try again.');
-    } finally {
+      const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+      setAiSuggestion(randomSuggestion);
       setLoading(false);
-    }
+    }, 2000);
   };
 
   const handleDirectN8nSubmit = async () => {
@@ -61,20 +37,11 @@ export default function DailyLog() {
 
     setLoading(true);
     
-    try {
-      const response = await apiClient.sendToN8nWebhook({
-        mood,
-        notes,
-        timestamp: new Date().toISOString()
-      });
-      
-      setAiSuggestion(response.suggestion || 'AI suggestion received from n8n!');
-    } catch (error) {
-      console.error('N8n webhook error:', error);
-      setAiSuggestion('Failed to get AI suggestion from n8n. Please try again.');
-    } finally {
+    // Simulate n8n webhook response
+    setTimeout(() => {
+      setAiSuggestion('AI suggestion received from n8n! (Simulated)');
       setLoading(false);
-    }
+    }, 1500);
   };
 
   return (
@@ -103,24 +70,20 @@ export default function DailyLog() {
               </button>
               <button
                 onClick={() => setUseExternalAI(true)}
-                disabled={!externalAIAvailable}
                 className={`px-3 py-1 rounded text-xs font-medium ${
                   useExternalAI 
                     ? 'bg-green-500 text-white' 
-                    : externalAIAvailable 
-                      ? 'bg-gray-200 text-gray-600' 
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-gray-200 text-gray-600'
                 }`}
               >
                 <Zap className="w-3 h-3 inline mr-1" />
                 External
-                {!externalAIAvailable && <span className="ml-1">(Offline)</span>}
               </button>
             </div>
           </div>
           {useExternalAI && (
             <p className="text-xs text-gray-500 mt-1">
-              Using Hugging Face AI through n8n workflow
+              Using Hugging Face AI through n8n workflow (Simulated)
             </p>
           )}
         </div>
@@ -144,17 +107,15 @@ export default function DailyLog() {
               {loading ? "Getting AI Suggestion..." : "Submit & Get AI Suggestion"}
             </Button>
             
-            {externalAIAvailable && (
-              <Button 
-                type="button" 
-                onClick={handleDirectN8nSubmit}
-                disabled={loading || !mood}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Zap className="w-4 h-4 mr-1" />
-                Direct n8n
-              </Button>
-            )}
+            <Button 
+              type="button" 
+              onClick={handleDirectN8nSubmit}
+              disabled={loading || !mood}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Zap className="w-4 h-4 mr-1" />
+              Direct n8n
+            </Button>
           </div>
         </form>
         

@@ -6,8 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { User, LogOut, Plus, Calendar } from "lucide-react";
 
 export default function Profile() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState({ email: "user@example.com" });
+  const [loading, setLoading] = useState(false);
   const [mood, setMood] = useState("");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -15,89 +15,32 @@ export default function Profile() {
   const router = useRouter();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        router.push("/signin");
-        return;
-      }
-
-      try {
-        const response = await fetch('http://localhost:3001/api/auth/me', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Authentication failed');
-        }
-
-        const userData = await response.json();
-        setUser(userData);
-        
-        // Load user's daily logs
-        await loadDailyLogs(token);
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        router.push("/signin");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [router]);
-
-  const loadDailyLogs = async (token) => {
-    try {
-      const response = await fetch('http://localhost:3001/api/daily-logs', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setLogs(data.logs || []);
-      }
-    } catch (error) {
-      console.error('Failed to load logs:', error);
-    }
-  };
+    // Simulate loading
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  }, []);
 
   const handleSubmitLog = async (e) => {
     e.preventDefault();
     if (!mood) return;
 
     setSubmitting(true);
-    const token = localStorage.getItem("authToken");
 
-    try {
-      const response = await fetch('http://localhost:3001/api/daily-logs', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          mood,
-          notes
-        })
-      });
-
-      if (response.ok) {
-        setMood("");
-        setNotes("");
-        await loadDailyLogs(token);
-      }
-    } catch (error) {
-      console.error('Failed to submit log:', error);
-    } finally {
+    // Simulate API call
+    setTimeout(() => {
+      const newLog = {
+        id: Date.now(),
+        mood,
+        notes,
+        created_at: new Date().toISOString()
+      };
+      
+      setLogs([newLog, ...logs]);
+      setMood("");
+      setNotes("");
       setSubmitting(false);
-    }
+    }, 1000);
   };
 
   const handleSignOut = () => {
