@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRouter } from "next/router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -9,6 +10,7 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,19 +18,35 @@ export default function SignIn() {
     setError("");
     setSuccess("");
 
-    // Simulate API call for now
-    setTimeout(() => {
-      setSuccess("Magic link sent! Check your email and click the link.");
-      setEmail("");
+    try {
+      const response = await fetch('http://localhost:3001/api/auth/send-magic-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess("Magic link sent! Check your email and click the link.");
+        setEmail("");
+      } else {
+        setError(data.error || "Failed to send magic link");
+      }
+    } catch (error) {
+      setError("Network error. Please try again.");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-200 via-teal-100 to-white">
       <Card className="p-8 max-w-md w-full">
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-blue-700 mb-2">Welcome to Nexium</h1>
+          <h1 className="text-3xl font-bold text-blue-700 mb-2">Welcome to Mental Health Tracker</h1>
           <p className="text-gray-600">Sign in with your email</p>
         </div>
 
@@ -57,6 +75,8 @@ export default function SignIn() {
               {success}
             </div>
           )}
+
+
 
           <Button
             type="submit"
