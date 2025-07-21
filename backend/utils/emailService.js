@@ -1,5 +1,5 @@
-const nodemailer = require('nodemailer');
-const config = require('../config');
+import nodemailer from 'nodemailer';
+import { config } from '../config.js';
 
 // Create transporter
 const transporter = nodemailer.createTransport({
@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Send magic link email
-const sendMagicLinkEmail = async (email, magicLink) => {
+export const sendMagicLinkEmail = async (email, magicLink) => {
   try {
     const mailOptions = {
       from: `"Mental Health Tracker" <${config.email.user}>`,
@@ -55,7 +55,6 @@ const sendMagicLinkEmail = async (email, magicLink) => {
         </div>
       `,
     };
-
     const info = await transporter.sendMail(mailOptions);
     console.log('Magic link email sent:', info.messageId);
     return true;
@@ -65,8 +64,7 @@ const sendMagicLinkEmail = async (email, magicLink) => {
   }
 };
 
-// Verify email configuration
-const verifyEmailConfig = async () => {
+export const verifyEmailConfig = async () => {
   try {
     await transporter.verify();
     console.log('Email configuration is valid');
@@ -75,9 +73,4 @@ const verifyEmailConfig = async () => {
     console.error('Email configuration error:', error);
     return false;
   }
-};
-
-module.exports = {
-  sendMagicLinkEmail,
-  verifyEmailConfig,
 }; 

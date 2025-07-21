@@ -138,4 +138,4 @@ dailyLogSchema.statics.getMoodStats = async function(userId) {
   ]);
 };
 
-module.exports = mongoose.model('DailyLog', dailyLogSchema); 
+export default mongoose.models.DailyLog || mongoose.model('DailyLog', dailyLogSchema); 
