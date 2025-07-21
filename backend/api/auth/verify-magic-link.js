@@ -3,6 +3,7 @@ import User from '../../models/User.js';
 import jwt from 'jsonwebtoken';
 import { config } from '../../config.js';
 import { magicLinkTokens } from './send-magic-link.js';
+import MagicLinkToken from '../../models/MagicLinkToken.js';
 
 export default async function handler(req, res) {
   const allowedOrigins = [
@@ -26,10 +27,10 @@ export default async function handler(req, res) {
   const { token } = req.body;
   if (!token) return res.status(400).json({ error: 'Token is required' });
 
-  const tokenData = magicLinkTokens.get(token);
+  const tokenData = await MagicLinkToken.findOne({ token });
   if (!tokenData) return res.status(400).json({ error: 'Invalid or expired token' });
   if (new Date() > tokenData.expiresAt) {
-    magicLinkTokens.delete(token);
+    await MagicLinkToken.deleteOne({ token });
     return res.status(400).json({ error: 'Token has expired' });
   }
 
@@ -42,7 +43,7 @@ export default async function handler(req, res) {
     { expiresIn: config.jwt.expiresIn }
   );
 
-  magicLinkTokens.delete(token);
+  await MagicLinkToken.deleteOne({ token });
 
   res.json({
     message: 'Login successful',

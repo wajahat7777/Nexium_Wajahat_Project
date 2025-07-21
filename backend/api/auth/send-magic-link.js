@@ -1,9 +1,8 @@
 import { dbConnect } from '../_db.js';
 import User from '../../models/User.js';
+import MagicLinkToken from '../../models/MagicLinkToken.js';
 import { sendMagicLinkEmail } from '../../utils/emailService.js';
 import crypto from 'crypto';
-
-const magicLinkTokens = new Map();
 
 export default async function handler(req, res) {
   const allowedOrigins = [
@@ -40,7 +39,7 @@ export default async function handler(req, res) {
 
   const token = crypto.randomBytes(32).toString('hex');
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-  magicLinkTokens.set(token, { userId: user._id, email: user.email, expiresAt });
+  await MagicLinkToken.create({ token, userId: user._id, email: user.email, expiresAt });
 
   const frontendUrl = process.env.FRONTEND_URL || 'https://mental-health-project-delta.vercel.app';
   console.log('FRONTEND_URL:', process.env.FRONTEND_URL);
@@ -52,6 +51,4 @@ export default async function handler(req, res) {
   } else {
     res.status(500).json({ error: 'Failed to send email. Please try again.', success: false });
   }
-}
-
-export { magicLinkTokens }; 
+} 
