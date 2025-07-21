@@ -2,7 +2,8 @@ export function setCorsHeaders(req, res) {
   const allowedOrigins = [
     'https://mental-health-project-delta.vercel.app',
     'https://mental-health-project-hgsnro2cg-wajahat-ullah-khans-projects.vercel.app',
-    'https://mental-health-project-git-main-wajahat-ullah-khans-projects.vercel.app'
+    'https://mental-health-project-git-main-wajahat-ullah-khans-projects.vercel.app',
+    'https://mental-health-project-6xpqu01q2-wajahat-ullah-khans-projects.vercel.app' // <-- Add this line
   ];
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
