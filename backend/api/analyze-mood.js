@@ -29,6 +29,15 @@ const suggestions = {
 };
 
 export default async function handler(req, res) {
+  // CORS headers
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', 'https://mental-health-project-delta.vercel.app');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.status(200).end();
+    return;
+  }
+  res.setHeader('Access-Control-Allow-Origin', 'https://mental-health-project-delta.vercel.app');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: 'Text is required' });

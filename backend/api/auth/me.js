@@ -4,6 +4,16 @@ import jwt from 'jsonwebtoken';
 import { config } from '../../config.js';
 
 export default async function handler(req, res) {
+  // CORS headers
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', 'https://mental-health-project-delta.vercel.app');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.status(200).end();
+    return;
+  }
+  res.setHeader('Access-Control-Allow-Origin', 'https://mental-health-project-delta.vercel.app');
+
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   await dbConnect();
