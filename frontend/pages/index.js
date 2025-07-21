@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Navbar from "../components/Navbar";
+import Link from "next/link";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -41,13 +42,13 @@ export default function Home() {
               Track your daily mood, reflect on your progress, and take steps towards a healthier mind.
             </p>
             <div className="space-y-3">
-              <a href="/profile" className="px-6 py-3 bg-blue-500 text-white rounded-full shadow hover:bg-blue-600 transition font-semibold inline-block">
+              <Link href="/profile" className="px-6 py-3 bg-blue-500 text-white rounded-full shadow hover:bg-blue-600 transition font-semibold inline-block">
                 View Profile & Mood Tracker
-              </a>
+              </Link>
               <br />
-              <a href="/daily-log" className="px-6 py-3 bg-green-500 text-white rounded-full shadow hover:bg-green-600 transition font-semibold inline-block">
+              <Link href="/daily-log" className="px-6 py-3 bg-green-500 text-white rounded-full shadow hover:bg-green-600 transition font-semibold inline-block">
                 Add Daily Log
-              </a>
+              </Link>
             </div>
           </div>
         </div>
