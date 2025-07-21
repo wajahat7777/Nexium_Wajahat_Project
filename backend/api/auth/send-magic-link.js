@@ -1,6 +1,7 @@
 import { dbConnect } from '../_db.js';
 import User from '../../models/User.js';
-import MagicLinkToken from '../../models/MagicLinkToken.js';
+import jwt from 'jsonwebtoken';
+import { config } from '../../config.js';
 import { sendMagicLinkEmail } from '../../utils/emailService.js';
 import crypto from 'crypto';
 
@@ -38,13 +39,19 @@ export default async function handler(req, res) {
     await user.save();
   }
 
-  const token = crypto.randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-  await MagicLinkToken.create({ token, userId: user._id, email: user.email, expiresAt });
+  // Generate JWT token for magic link
+  const jwtToken = jwt.sign(
+    {
+      userId: user._id,
+      email: user.email
+    },
+    config.jwt.secret,
+    { expiresIn: '15m' }
+  );
 
   const frontendUrl = process.env.FRONTEND_URL || 'https://mental-health-project-delta.vercel.app';
   console.log('FRONTEND_URL:', process.env.FRONTEND_URL);
-  const magicLink = `${frontendUrl}/verify-magic-link?token=${token}`;
+  const magicLink = `${frontendUrl}/verify-magic-link?token=${jwtToken}`;
   const emailSent = await sendMagicLinkEmail(email, magicLink);
 
   if (emailSent) {

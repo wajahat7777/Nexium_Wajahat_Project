@@ -28,34 +28,29 @@ export default async function handler(req, res) {
   const { token } = req.body;
   if (!token) return res.status(400).json({ error: 'Token is required' });
 
-  console.log('Token received:', token);
-  const tokenData = await MagicLinkToken.findOne({ token });
-  console.log('Token data from DB:', tokenData);
-  if (!tokenData) return res.status(400).json({ error: 'Invalid or expired token' });
-  if (new Date() > tokenData.expiresAt) {
-    await MagicLinkToken.deleteOne({ token });
-    return res.status(400).json({ error: 'Token has expired' });
+  try {
+    const decoded = jwt.verify(token, config.jwt.secret);
+    const user = await User.findById(decoded.userId);
+    if (!user) return res.status(400).json({ error: 'User not found' });
+
+    // Generate a session JWT for the user
+    const sessionToken = jwt.sign(
+      { userId: user._id, email: user.email },
+      config.jwt.secret,
+      { expiresIn: config.jwt.expiresIn }
+    );
+
+    res.json({
+      message: 'Login successful',
+      token: sessionToken,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName
+      }
+    });
+  } catch (err) {
+    res.status(400).json({ error: 'Invalid or expired token' });
   }
-
-  const user = await User.findById(tokenData.userId);
-  if (!user) return res.status(400).json({ error: 'User not found' });
-
-  const jwtToken = jwt.sign(
-    { userId: user._id, email: user.email },
-    config.jwt.secret,
-    { expiresIn: config.jwt.expiresIn }
-  );
-
-  await MagicLinkToken.deleteOne({ token });
-
-  res.json({
-    message: 'Login successful',
-    token: jwtToken,
-    user: {
-      id: user._id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName
-    }
-  });
 } 
