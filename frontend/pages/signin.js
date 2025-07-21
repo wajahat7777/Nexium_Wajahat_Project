@@ -12,6 +12,8 @@ export default function SignIn() {
   const [success, setSuccess] = useState("");
   const router = useRouter();
 
+  const BACKEND_URL = 'https://nexium-wajahat-project.vercel.app/api';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -19,7 +21,7 @@ export default function SignIn() {
     setSuccess("");
 
     try {
-      const response = await fetch('http://localhost:3001/api/auth/send-magic-link', {
+      const response = await fetch(`${BACKEND_URL}/auth/send-magic-link`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
