@@ -42,7 +42,9 @@ export default async function handler(req, res) {
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
   magicLinkTokens.set(token, { userId: user._id, email: user.email, expiresAt });
 
-  const magicLink = `${process.env.FRONTEND_URL}/verify-magic-link?token=${token}`;
+  const frontendUrl = process.env.FRONTEND_URL || 'https://mental-health-project-delta.vercel.app';
+  console.log('FRONTEND_URL:', process.env.FRONTEND_URL);
+  const magicLink = `${frontendUrl}/verify-magic-link?token=${token}`;
   const emailSent = await sendMagicLinkEmail(email, magicLink);
 
   if (emailSent) {
