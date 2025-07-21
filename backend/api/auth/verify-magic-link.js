@@ -8,7 +8,8 @@ import MagicLinkToken from '../../models/MagicLinkToken.js';
 export default async function handler(req, res) {
   const allowedOrigins = [
     'https://mental-health-project-delta.vercel.app',
-    'https://mental-health-project-hgsnro2cg-wajahat-ullah-khans-projects.vercel.app'
+    'https://mental-health-project-hgsnro2cg-wajahat-ullah-khans-projects.vercel.app',
+    'https://mental-health-project-git-main-wajahat-ullah-khans-projects.vercel.app'
   ];
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
