@@ -6,15 +6,20 @@ import crypto from 'crypto';
 const magicLinkTokens = new Map();
 
 export default async function handler(req, res) {
-  // CORS headers
+  const allowedOrigins = [
+    'https://mental-health-project-delta.vercel.app',
+    'https://mental-health-project-hgsnro2cg-wajahat-ullah-khans-projects.vercel.app'
+  ];
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', 'https://mental-health-project-delta.vercel.app');
     res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.status(200).end();
     return;
   }
-  res.setHeader('Access-Control-Allow-Origin', 'https://mental-health-project-delta.vercel.app');
 
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
