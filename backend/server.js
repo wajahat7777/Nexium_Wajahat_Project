@@ -51,6 +51,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/daily-logs', require('./routes/daily-logs'));
+app.use('/api', require('./routes/ai'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

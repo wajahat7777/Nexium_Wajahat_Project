@@ -36,83 +36,59 @@ export default function DailyLog() {
       if (response.ok) {
         setSaved(true);
         
-        // Generate AI suggestion based on mood
-        const suggestions = {
-          "Happy": [
-            "Based on your happy mood, try taking a short walk outside to maintain this positive energy.",
-            "Share your joy with someone you care about - it can multiply your happiness.",
-            "Try a new hobby or activity you've been curious about.",
-            "Practice gratitude by writing down 3 things you're thankful for today."
-          ],
-          "Good": [
-            "Build on this positive momentum with some light exercise.",
-            "Connect with a friend or family member to strengthen your relationships.",
-            "Try something creative like drawing or writing.",
-            "Plan something enjoyable for later today."
-          ],
-          "Okay": [
-            "Take a few deep breaths to center yourself and find inner peace.",
-            "Try a short meditation or mindfulness exercise.",
-            "Do something small that brings you comfort and joy.",
-            "Consider talking to someone about how you're feeling."
-          ],
-          "Sad": [
-            "Be gentle with yourself - it's okay to feel this way.",
-            "Try some gentle self-care activities like a warm bath or reading.",
-            "Consider reaching out to a trusted friend or family member.",
-            "Remember that feelings are temporary and will pass."
-          ],
-          "Terrible": [
-            "Please know you're not alone in this difficult time.",
-            "Consider talking to a mental health professional for support.",
-            "Try some grounding exercises to help you feel more present.",
-            "Focus on small, manageable tasks to help you feel more in control."
-          ]
-        };
-        
-        const moodSuggestions = suggestions[mood] || suggestions["Okay"];
-        const randomSuggestion = moodSuggestions[Math.floor(Math.random() * moodSuggestions.length)];
-        setAiSuggestion(randomSuggestion);
+        if (useExternalAI) {
+          // Get suggestion from n8n
+          const aiRes = await fetch('http://localhost:3001/api/analyze-mood', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: notes || mood })
+          });
+          if (aiRes.ok) {
+            const aiData = await aiRes.json();
+            setAiSuggestion(aiData.suggestions[0]);
+          } else {
+            setAiSuggestion('Could not get AI suggestion.');
+          }
+        } else {
+          // Local suggestions
+          const suggestions = {
+            "Happy": [
+              "Based on your happy mood, try taking a short walk outside to maintain this positive energy.",
+              "Share your joy with someone you care about - it can multiply your happiness.",
+              "Try a new hobby or activity you've been curious about.",
+              "Practice gratitude by writing down 3 things you're thankful for today."
+            ],
+            "Good": [
+              "Build on this positive momentum with some light exercise.",
+              "Connect with a friend or family member to strengthen your relationships.",
+              "Try something creative like drawing or writing.",
+              "Plan something enjoyable for later today."
+            ],
+            "Okay": [
+              "Take a few deep breaths to center yourself and find inner peace.",
+              "Try a short meditation or mindfulness exercise.",
+              "Do something small that brings you comfort and joy.",
+              "Consider talking to someone about how you're feeling."
+            ],
+            "Sad": [
+              "Be gentle with yourself - it's okay to feel this way.",
+              "Try some gentle self-care activities like a warm bath or reading.",
+              "Consider reaching out to a trusted friend or family member.",
+              "Remember that feelings are temporary and will pass."
+            ],
+            "Terrible": [
+              "Please know you're not alone in this difficult time.",
+              "Consider talking to a mental health professional for support.",
+              "Try some grounding exercises to help you feel more present.",
+              "Focus on small, manageable tasks to help you feel more in control."
+            ]
+          };
+          const moodSuggestions = suggestions[mood] || suggestions["Okay"];
+          const randomSuggestion = moodSuggestions[Math.floor(Math.random() * moodSuggestions.length)];
+          setAiSuggestion(randomSuggestion);
+        }
         
         // Clear form
-        setMood("");
-        setNotes("");
-      } else {
-        console.error('Failed to save log');
-      }
-    } catch (error) {
-      console.error('Error saving log:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDirectN8nSubmit = async () => {
-    if (!mood) {
-      alert('Please enter your mood first');
-      return;
-    }
-
-    setLoading(true);
-    
-    try {
-      // Save log to database first
-      const token = localStorage.getItem("authToken");
-      const response = await fetch('http://localhost:3001/api/daily-logs', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          mood,
-          notes: notes || ''
-        }),
-      });
-
-      if (response.ok) {
-        setSaved(true);
-        setAiSuggestion('AI suggestion received from n8n! (Simulated)');
         setMood("");
         setNotes("");
       } else {
@@ -188,16 +164,6 @@ export default function DailyLog() {
               <Button type="submit" className="flex-1" disabled={loading}>
                 {loading ? "Saving..." : "Submit & Get AI Suggestion"}
               </Button>
-              
-              <Button 
-                type="button" 
-                onClick={handleDirectN8nSubmit}
-                disabled={loading || !mood}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Zap className="w-4 h-4 mr-1" />
-                Direct n8n
-              </Button>
             </div>
           </form>
           
@@ -220,6 +186,12 @@ export default function DailyLog() {
                 </strong>
               </div>
               <div>{aiSuggestion}</div>
+              {useExternalAI && (
+                <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-green-500" />
+                  Powered by AI (n8n + Hugging Face)
+                </div>
+              )}
             </div>
           )}
         </Card>

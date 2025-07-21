@@ -4,6 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { User, LogOut, Plus, Calendar, Lightbulb, TrendingUp } from "lucide-react";
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -14,6 +26,8 @@ export default function Profile() {
   const [logs, setLogs] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState("");
+  const [aiEmotion, setAiEmotion] = useState("");
   const router = useRouter();
 
   const moodSuggestions = {
@@ -121,6 +135,21 @@ export default function Profile() {
         setMood("");
         setNotes("");
         setShowSuggestions(true);
+
+        // Fetch AI suggestion from backend
+        const aiRes = await fetch('http://localhost:3001/api/analyze-mood', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: notes || mood })
+        });
+        if (aiRes.ok) {
+          const aiData = await aiRes.json();
+          setAiSuggestion(aiData.suggestions[0]);
+          setAiEmotion(aiData.detectedEmotion);
+        } else {
+          setAiSuggestion("");
+          setAiEmotion("");
+        }
       } else {
         console.error('Failed to save log');
       }
@@ -147,6 +176,63 @@ export default function Profile() {
     );
   }
 
+  // 2. Prepare mood-to-number mapping and chart data after logs are loaded:
+  const moodToValue = { 'Terrible': 1, 'Sad': 2, 'Okay': 3, 'Good': 4, 'Happy': 5 };
+  const valueToMood = [null, 'Terrible', 'Sad', 'Okay', 'Good', 'Happy'];
+  const chartData = {
+    labels: logs.slice().reverse().map(log => {
+      const d = new Date(log.createdAt);
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }),
+    datasets: [
+      {
+        label: 'Mood Trend',
+        data: logs.slice().reverse().map(log => moodToValue[log.mood] || 0),
+        fill: false,
+        borderColor: '#3b82f6',
+        backgroundColor: '#3b82f6',
+        tension: 0.3,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      },
+    ],
+  };
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Mood Trend Over Time' },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const mood = valueToMood[context.parsed.y];
+            return `Mood: ${mood}`;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        min: 1,
+        max: 5,
+        ticks: {
+          stepSize: 1,
+          callback: function(value) { return valueToMood[value]; }
+        },
+        title: { display: true, text: 'Mood' }
+      },
+      x: {
+        title: { display: true, text: 'Date & Time' },
+        ticks: {
+          autoSkip: false,
+          maxRotation: 30,
+          minRotation: 30,
+          font: { size: 12 }
+        }
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-200 via-teal-100 to-white p-4">
       <div className="max-w-6xl mx-auto">
@@ -168,56 +254,6 @@ export default function Profile() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Daily Log Form */}
-          <Card className="p-6">
-            <div className="flex items-center mb-4">
-              <Plus className="w-5 h-5 text-blue-600 mr-2" />
-              <h2 className="text-xl font-semibold text-gray-800">Add Daily Log</h2>
-            </div>
-            
-            <form onSubmit={handleSubmitLog} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  How are you feeling today?
-                </label>
-                <select
-                  value={mood}
-                  onChange={(e) => setMood(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="">Select your mood</option>
-                  <option value="Happy">😊 Happy</option>
-                  <option value="Good">🙂 Good</option>
-                  <option value="Okay">😐 Okay</option>
-                  <option value="Sad">😔 Sad</option>
-                  <option value="Terrible">😖 Terrible</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Notes (optional)
-                </label>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="How was your day? Any thoughts or feelings?"
-                  className="w-full"
-                  rows={4}
-                />
-              </div>
-
-              <Button
-                type="submit"
-                disabled={submitting || !mood}
-                className="w-full bg-blue-600 hover:bg-blue-700"
-              >
-                {submitting ? "Saving..." : "Save Daily Log"}
-              </Button>
-            </form>
-          </Card>
-
           {/* Mood Suggestions */}
           {showSuggestions && mood && (
             <Card className="p-6">
@@ -225,17 +261,27 @@ export default function Profile() {
                 <Lightbulb className="w-5 h-5 text-yellow-600 mr-2" />
                 <h2 className="text-xl font-semibold text-gray-800">Mood Suggestions</h2>
               </div>
-              
               <div className="space-y-3">
+                {aiSuggestion && (
+                  <div className="p-3 bg-blue-50 rounded-md border-l-4 border-blue-400 mb-2">
+                    <p className="text-sm text-blue-700 font-semibold">AI Suggestion (n8n + Hugging Face):</p>
+                    <p className="text-sm text-gray-800 mt-1">{aiSuggestion}</p>
+                    {aiEmotion && (
+                      <p className="text-xs text-gray-500 mt-1">Detected Emotion: <span className="font-medium">{aiEmotion}</span></p>
+                    )}
+                    <div className="mt-1 text-xs text-gray-500 flex items-center gap-1">
+                      <span role="img" aria-label="zap">⚡</span> Powered by AI (n8n + Hugging Face)
+                    </div>
+                  </div>
+                )}
                 {moodSuggestions[mood]?.map((suggestion, index) => (
                   <div key={index} className="p-3 bg-yellow-50 rounded-md border-l-4 border-yellow-400">
                     <p className="text-sm text-gray-700">{suggestion}</p>
                   </div>
                 ))}
               </div>
-              
               <Button
-                onClick={() => setShowSuggestions(false)}
+                onClick={() => { setShowSuggestions(false); setAiSuggestion(""); setAiEmotion(""); }}
                 variant="outline"
                 className="w-full mt-4"
               >
@@ -269,7 +315,7 @@ export default function Profile() {
                         )}
                       </div>
                       <span className="text-xs text-gray-500">
-                        {new Date(log.createdAt).toLocaleDateString()}
+                        {new Date(log.createdAt).toLocaleDateString()} {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                   </div>
@@ -277,6 +323,19 @@ export default function Profile() {
               </div>
             )}
           </Card>
+
+          {/* Mood Trend Graph */}
+          {logs.length > 0 && (
+            <Card className="p-6 lg:w-[750px] mx-auto">
+              <div className="flex items-center mb-4">
+                <TrendingUp className="w-5 h-5 text-blue-600 mr-2" />
+                <h2 className="text-xl font-semibold text-blue-800">Mood Trend</h2>
+              </div>
+              <div className="w-full lg:w-[700px] mx-auto" style={{ minHeight: 400 }}>
+                <Line data={chartData} options={chartOptions} />
+              </div>
+            </Card>
+          )}
         </div>
 
         {/* Mood Insights */}
