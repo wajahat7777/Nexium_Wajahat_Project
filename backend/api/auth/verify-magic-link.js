@@ -1,10 +1,9 @@
-import { dbConnect } from '../_db.js';
-import User from '../../models/User.js';
+import { setCorsHeaders } from '../_cors.js';
 import jwt from 'jsonwebtoken';
 import { config } from '../../config.js';
-import { magicLinkTokens } from './send-magic-link.js';
+import { dbConnect } from '../_db.js';
+import User from '../../models/User.js';
 import MagicLinkToken from '../../models/MagicLinkToken.js';
-import { setCorsHeaders } from '../_cors.js';
 
 export default async function handler(req, res) {
   if (setCorsHeaders(req, res)) return;

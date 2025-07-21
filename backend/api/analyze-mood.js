@@ -1,5 +1,8 @@
-import axios from 'axios';
 import { setCorsHeaders } from './_cors.js';
+import axios from 'axios';
+import jwt from 'jsonwebtoken';
+import { config } from '../config.js';
+import User from '../models/User.js';
 
 const suggestions = {
   anger: [

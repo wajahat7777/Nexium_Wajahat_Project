@@ -1,9 +1,9 @@
+import { setCorsHeaders } from './_cors.js';
 import { dbConnect } from './_db.js';
 import DailyLog from '../models/DailyLog.js';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import { config } from '../config.js';
-import { setCorsHeaders } from './_cors.js';
 
 export default async function handler(req, res) {
   if (setCorsHeaders(req, res)) return;
