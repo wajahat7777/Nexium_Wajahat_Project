@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { setCorsHeaders } from './_cors.js';
 
 const suggestions = {
   anger: [
@@ -29,15 +30,7 @@ const suggestions = {
 };
 
 export default async function handler(req, res) {
-  const allowedOrigins = [
-    'https://mental-health-project-delta.vercel.app',
-    'https://mental-health-project-hgsnro2cg-wajahat-ullah-khans-projects.vercel.app',
-    'https://mental-health-project-git-main-wajahat-ullah-khans-projects.vercel.app'
-  ];
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
+  if (setCorsHeaders(req, res)) return;
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
