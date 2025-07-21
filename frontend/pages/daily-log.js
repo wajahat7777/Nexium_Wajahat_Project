@@ -11,6 +11,8 @@ export default function DailyLog() {
   const [useExternalAI, setUseExternalAI] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  const BACKEND_URL = 'https://nexium-wajahat-project.vercel.app/api';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!mood) return;
@@ -21,7 +23,7 @@ export default function DailyLog() {
     try {
       // Save log to database
       const token = localStorage.getItem("authToken");
-      const response = await fetch('http://localhost:3001/api/daily-logs', {
+      const response = await fetch(`${BACKEND_URL}/daily-logs`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -38,7 +40,7 @@ export default function DailyLog() {
         
         if (useExternalAI) {
           // Get suggestion from n8n
-          const aiRes = await fetch('http://localhost:3001/api/analyze-mood', {
+          const aiRes = await fetch(`${BACKEND_URL}/analyze-mood`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: notes || mood })
