@@ -33,7 +33,7 @@ export default function History() {
         // Filter by mood on the frontend if needed
         const filteredLogs = mood ? (data.logs || []).filter(log => log.mood === mood) : (data.logs || []);
         setLogs(filteredLogs);
-        setTotalPages(1); // Pagination not supported in aggregation, so just show all
+        setTotalPages(1); // Pagination not supported in this simple version
         setCurrentPage(1);
       } else {
         console.error('Failed to load logs');
@@ -183,18 +183,23 @@ export default function History() {
             ) : (
               <div className="space-y-4">
                 {logs.map((log) => (
-                  <div key={log.date} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
+                  <div key={log._id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{getMoodEmoji(log.mood)}</span>
                         <div>
                           <h3 className="font-semibold text-gray-800">{log.mood}</h3>
-                          {/* Optionally show notes summary or count */}
+                          {log.notes && (
+                            <p className="text-gray-600 mt-1">{log.notes}</p>
+                          )}
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-sm text-gray-500">
-                          {log.date}
+                          {new Date(log.createdAt).toLocaleDateString()}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {new Date(log.createdAt).toLocaleTimeString()}
                         </div>
                       </div>
                     </div>
