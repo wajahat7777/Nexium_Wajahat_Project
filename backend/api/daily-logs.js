@@ -24,6 +24,20 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
+  if (req.method === 'GET' && req.url && req.url.endsWith('/stats/mood')) {
+    try {
+      const stats = await DailyLog.aggregate([
+        { $match: { user: decoded.userId } },
+        { $group: { _id: "$mood", count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ]);
+      return res.json({ stats });
+    } catch (err) {
+      console.error('Stats aggregation error:', err);
+      return res.status(500).json({ error: 'Failed to aggregate mood stats', details: err.message });
+    }
+  }
+
   if (req.method === 'GET') {
     try {
       const logs = await DailyLog.aggregate([
