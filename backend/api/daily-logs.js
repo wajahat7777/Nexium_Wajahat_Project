@@ -25,60 +25,61 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    // Fetch daily mood per day for user
-    const logs = await DailyLog.aggregate([
-      { $match: { user: decoded.userId } },
-      { $addFields: { date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } } } },
-      { $group: {
-        _id: { date: "$date" },
-        moods: { $push: "$mood" },
-        notes: { $push: "$notes" },
-        createdAt: { $first: "$createdAt" }
-      } },
-      { $project: {
-        _id: 0,
-        date: "$_id.date",
-        mood: {
-          $arrayElemAt: [
-            {
-              $map: {
-                input: [
-                  {
-                    $first: {
-                      $slice: [
-                        {
-                          $reverseArray: {
-                            $sortArray: {
-                              input: {
-                                $objectToArray: {
-                                  $arrayToObject: {
-                                    $map: {
-                                      input: { $setUnion: ["$moods"] },
-                                      as: "m",
-                                      in: ["$$m", { $size: { $filter: { input: "$moods", as: "x", cond: { $eq: ["$$x", "$$m"] } } } }]
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }, 1
-                      ]
-                    }
+    try {
+      const logs = await DailyLog.aggregate([
+        { $match: { user: decoded.userId } },
+        { $addFields: { date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } } } },
+        { $sort: { createdAt: -1 } },
+        { $group: {
+          _id: { date: "$date" },
+          moods: { $push: "$mood" },
+          notes: { $push: "$notes" },
+          createdAt: { $first: "$createdAt" }
+        } },
+        { $project: {
+          _id: 0,
+          date: "$_id.date",
+          mood: {
+            $let: {
+              vars: {
+                moodCounts: { $map: {
+                  input: { $setUnion: ["$moods"] },
+                  as: "m",
+                  in: {
+                    mood: "$$m",
+                    count: { $size: { $filter: { input: "$moods", as: "x", cond: { $eq: ["$$x", "$$m"] } } } }
                   }
-                ],
-                as: "item",
-                in: { $arrayElemAt: ["$$item", 0] }
+                } }
+              },
+              in: {
+                $first: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$$moodCounts",
+                        as: "mc",
+                        cond: {
+                          $eq: ["$$mc.count", { $max: "$$moodCounts.count" }] 
+                        }
+                      }
+                    },
+                    as: "top",
+                    in: "$$top.mood"
+                  }
+                }
               }
-            }, 0
-          ]
-        },
-        notes: 1,
-        createdAt: 1
-      } },
-      { $sort: { date: -1 } }
-    ]);
-    return res.json({ logs });
+            }
+          },
+          notes: 1,
+          createdAt: 1
+        } },
+        { $sort: { date: -1 } }
+      ]);
+      return res.json({ logs });
+    } catch (err) {
+      console.error('Aggregation error:', err);
+      return res.status(500).json({ error: 'Failed to aggregate daily moods', details: err.message });
+    }
   }
 
   if (req.method === 'POST') {
