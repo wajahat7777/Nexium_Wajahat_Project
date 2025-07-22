@@ -25,8 +25,59 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    // Fetch logs for user
-    const logs = await DailyLog.find({ user: decoded.userId }).sort({ createdAt: -1 });
+    // Fetch daily mood per day for user
+    const logs = await DailyLog.aggregate([
+      { $match: { user: decoded.userId } },
+      { $addFields: { date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } } } },
+      { $group: {
+        _id: { date: "$date" },
+        moods: { $push: "$mood" },
+        notes: { $push: "$notes" },
+        createdAt: { $first: "$createdAt" }
+      } },
+      { $project: {
+        _id: 0,
+        date: "$_id.date",
+        mood: {
+          $arrayElemAt: [
+            {
+              $map: {
+                input: [
+                  {
+                    $first: {
+                      $slice: [
+                        {
+                          $reverseArray: {
+                            $sortArray: {
+                              input: {
+                                $objectToArray: {
+                                  $arrayToObject: {
+                                    $map: {
+                                      input: { $setUnion: ["$moods"] },
+                                      as: "m",
+                                      in: ["$$m", { $size: { $filter: { input: "$moods", as: "x", cond: { $eq: ["$$x", "$$m"] } } } }]
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }, 1
+                      ]
+                    }
+                  }
+                ],
+                as: "item",
+                in: { $arrayElemAt: ["$$item", 0] }
+              }
+            }, 0
+          ]
+        },
+        notes: 1,
+        createdAt: 1
+      } },
+      { $sort: { date: -1 } }
+    ]);
     return res.json({ logs });
   }
 
