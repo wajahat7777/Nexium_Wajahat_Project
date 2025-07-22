@@ -19,7 +19,7 @@ export default function VerifyMagicLink() {
       }
 
       try {
-        const response = await fetch('http://localhost:3001/api/auth/verify-magic-link', {
+        const response = await fetch('https://nexium-wajahat-project.vercel.app/api/auth/verify-magic-link', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -29,18 +29,13 @@ export default function VerifyMagicLink() {
 
         const data = await response.json();
 
-        if (response.ok) {
+        if (data.token && data.user) {
           // Store authentication data
           localStorage.setItem("authToken", data.token);
           localStorage.setItem("userData", JSON.stringify(data.user));
-          
           setStatus("success");
           setMessage("Login successful! Redirecting to your profile...");
-          
-          // Redirect to profile after a short delay
-          setTimeout(() => {
-            router.push("/profile");
-          }, 2000);
+          router.push("/profile");
         } else {
           setStatus("error");
           setMessage(data.error || "Verification failed");
