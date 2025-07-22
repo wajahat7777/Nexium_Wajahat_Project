@@ -11,12 +11,14 @@ export default function History() {
   const [selectedMood, setSelectedMood] = useState("");
   const [stats, setStats] = useState(null);
 
+  const BACKEND_URL = 'https://nexium-wajahat-project.vercel.app/api';
+
   const loadLogs = async (page = 1, mood = "") => {
     try {
       setLoading(true);
       const token = localStorage.getItem("authToken");
       
-      let url = `http://localhost:3001/api/daily-logs?page=${page}&limit=10`;
+      let url = `${BACKEND_URL}/daily-logs?page=${page}&limit=10`;
       if (mood) {
         url += `&mood=${mood}`;
       }
@@ -46,7 +48,7 @@ export default function History() {
   const loadStats = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch('http://localhost:3001/api/daily-logs/stats/mood', {
+      const response = await fetch(`${BACKEND_URL}/daily-logs/stats/mood`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
