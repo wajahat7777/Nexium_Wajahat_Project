@@ -6,12 +6,6 @@ import { config } from '../../../config.js';
 
 export default async function handler(req, res) {
   if (setCorsHeaders(req, res)) return;
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.status(200).end();
-    return;
-  }
   await dbConnect();
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'No token provided' });
