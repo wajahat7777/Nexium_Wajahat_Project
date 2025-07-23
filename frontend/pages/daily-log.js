@@ -5,6 +5,7 @@ import AuthGuard from "@/components/AuthGuard";
 
 export default function DailyLog() {
   const [mood, setMood] = useState("");
+  const [customMood, setCustomMood] = useState("");
   const [notes, setNotes] = useState("");
   const [aiSuggestion, setAiSuggestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,7 +16,8 @@ export default function DailyLog() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!mood) return;
+    const moodToSend = customMood.trim() ? customMood : mood;
+    if (!moodToSend) return;
     
     setLoading(true);
     setSaved(false);
@@ -30,7 +32,7 @@ export default function DailyLog() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          mood,
+          mood: moodToSend,
           notes: notes || ''
         }),
       });
@@ -85,13 +87,14 @@ export default function DailyLog() {
               "Focus on small, manageable tasks to help you feel more in control."
             ]
           };
-          const moodSuggestions = suggestions[mood] || suggestions["Okay"];
+          const moodSuggestions = suggestions[moodToSend] || suggestions["Okay"];
           const randomSuggestion = moodSuggestions[Math.floor(Math.random() * moodSuggestions.length)];
           setAiSuggestion(randomSuggestion);
         }
         
         // Clear form
         setMood("");
+        setCustomMood("");
         setNotes("");
       } else {
         console.error('Failed to save log');
@@ -149,11 +152,23 @@ export default function DailyLog() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
+            <label className="block text-sm font-medium text-gray-700">Mood</label>
+            <select
+              className="w-full p-2 border rounded mb-2"
               value={mood}
               onChange={e => setMood(e.target.value)}
-              placeholder="How are you feeling today? (e.g., Happy, Sad, Anxious)"
-              required
+            >
+              <option value="">Select your mood</option>
+              <option value="Happy">Happy</option>
+              <option value="Good">Good</option>
+              <option value="Okay">Okay</option>
+              <option value="Sad">Sad</option>
+              <option value="Terrible">Terrible</option>
+            </select>
+            <Input
+              value={customMood}
+              onChange={e => setCustomMood(e.target.value)}
+              placeholder="Or write your own mood..."
             />
             <Textarea
               value={notes}
