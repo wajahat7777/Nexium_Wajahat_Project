@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, Input, Card, Textarea } from "@/components/ui";
 import { Sparkles, Brain, Zap } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
+import Image from "next/image";
 
 export default function DailyLog() {
   const [mood, setMood] = useState("");
@@ -11,6 +12,7 @@ export default function DailyLog() {
   const [loading, setLoading] = useState(false);
   const [useExternalAI, setUseExternalAI] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [theme, setTheme] = useState("light");
 
   const BACKEND_URL = 'https://nexium-wajahat-project.vercel.app/api';
 
@@ -108,11 +110,21 @@ export default function DailyLog() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-teal-50 to-white flex flex-col items-center pt-28 px-2">
-        <Card className="p-8 max-w-lg w-full shadow-xl rounded-2xl border border-blue-100">
+      <div className={
+        `min-h-screen flex flex-col items-center pt-28 px-2 transition-colors duration-300 ` +
+        (theme === "dark" ? "dark bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" : "bg-gradient-to-br from-blue-100 via-teal-50 to-white")
+      }>
+        <Card className="p-8 max-w-lg w-full shadow-xl rounded-2xl border border-blue-100 dark:border-gray-700 dark:bg-gray-900">
           <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="text-blue-500" />
-            <h1 className="text-2xl font-bold text-blue-700">Daily Log</h1>
+            <Image src="/mental-health.png" alt="Mental Health Icon" width={36} height={36} />
+            <h1 className="text-2xl font-bold text-blue-700 dark:text-white">Daily Log</h1>
+            <button
+              className="ml-auto px-3 py-1 rounded text-xs font-medium border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              type="button"
+            >
+              {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
+            </button>
           </div>
           
           {/* AI Service Toggle */}
