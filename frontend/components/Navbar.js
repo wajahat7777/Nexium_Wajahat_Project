@@ -46,19 +46,19 @@ export default function Navbar() {
             ? "bg-blue-800 text-white border-blue-700 hover:bg-blue-700"
             : "bg-white text-blue-700 border-blue-200 hover:bg-blue-100")
         }>Profile</Link>
-        <button
-          className={
-            `ml-4 px-3 py-1 rounded text-xs font-medium border transition ` +
-            (theme === "dark"
-              ? "border-blue-700 bg-blue-800 text-white hover:bg-blue-700"
-              : "border-blue-200 bg-white text-blue-700 hover:bg-blue-100")
-          }
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          type="button"
-        >
-          {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
-        </button>
       </div>
+      <button
+        className={
+          `px-3 py-1 rounded text-xs font-medium border transition ` +
+          (theme === "dark"
+            ? "border-blue-700 bg-blue-800 text-white hover:bg-blue-700"
+            : "border-blue-200 bg-white text-blue-700 hover:bg-blue-100")
+        }
+        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        type="button"
+      >
+        {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
+      </button>
     </nav>
   );
 } 
