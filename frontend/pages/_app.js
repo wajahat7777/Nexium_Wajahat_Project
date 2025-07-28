@@ -12,6 +12,7 @@ export default function App({ Component, pageProps }) {
   return (
     <ThemeContext.Provider value={value}>
       <Head>
+        <title>Mental Health Tracker</title>
         <link rel="icon" href="/mental-health.png" />
         <meta name="theme-color" content={theme === 'dark' ? '#0a2342' : '#e0f2fe'} />
       </Head>
